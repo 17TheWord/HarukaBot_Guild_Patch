@@ -5,7 +5,7 @@
 
 ## 食用方法
 前置需求：  
-  - [频道适配补丁](https://github.com/mnixry/nonebot-plugin-guild-patch)
+  - [nonebot-plugin-guild-patch](https://github.com/mnixry/nonebot-plugin-guild-patch)：频道适配补丁
   - 目录结构参考：
 ```
 📦 HarukaBot-master
