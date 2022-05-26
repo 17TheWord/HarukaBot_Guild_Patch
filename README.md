@@ -49,7 +49,7 @@
 - 替换 `database` 目录下的 `models.py`  
 - 替换 `utils` 目录下的 `__init__.py`
 ---
-### 已知的问题：
+### 已知问题：
 - 建议关闭@机器人命令，因为不清楚频道与群的@方式是否相同 `Haruka_TO_ME=False`
 - ~~建议~~ **强烈建议**推送频道设为只读：
   - 由于频道用户ID不同于QQ号，所以猜测超级用户不会生效
@@ -69,7 +69,7 @@
 - [bilibili-API-collect](https://github.com/SocialSisterYi/bilibili-API-collect)： 非常详细的 B 站 API 文档。
 - [bilibili_api](https://github.com/Passkou/bilibili_api)： Python 实现的 B 站 API 库。
 
-## 已知问题：
+## 问题记录：
 ### 2022/5/26
 - 因为不清楚频道与群的@方式是否相同，建议关闭@机器人命令 `Haruka_TO_ME=False`
 - 因数据库中数据类型改动，需要删除数据库重新订阅！！！！！！
