@@ -10,7 +10,7 @@
 ```
 📦 HarukaBot-master
 ├── 📂 plugins
-│   ├── 📂 haruka_bot      # haruka_bot 的插件！不是 HarukaBot本身 
+│   ├── 📂 haruka_bot      # haruka_bot 插件！不是 HarukaBot本身 
 │   └── 📂 nonebot_plugin_guild_patch        # 频道适配插件
 ├── 📂 src                 # 或是 HarukaBot-master
 ├── 📜 .env                # 可选的
