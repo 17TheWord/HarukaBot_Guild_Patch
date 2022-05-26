@@ -6,7 +6,9 @@
 > 提交[Issues](https://github.com/17TheWord/HarukaBot_Guild_Patch/issues/new) ，因个人能力有限不保证解决issue
 
 
-## [HarukaBot](https://haruka-bot.sk415.icu)——优雅的 B 站推送 QQ 机器人
+## HarukaBot——优雅的 B 站推送 QQ 机器人
+- [文档]((https://haruka-bot.sk415.icu))
+- [Github](https://github.com/SK-415/HarukaBot)
 
 ## 食用方法
 ### 前置需求：  
