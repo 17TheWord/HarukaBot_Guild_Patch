@@ -1,7 +1,9 @@
 # HarukaBot_Guild_Patch
 可以让 **HarukaBot** 适用于 **频道** 的方法。
 
-## [HarukaBot](https://haruka-bot.sk415.icu)——优雅的 B 站推送 QQ 机器人
+## HarukaBot——优雅的 B 站推送 QQ 机器人
+- [文档](https://haruka-bot.sk415.icu)
+- [Github](https://github.com/SK-415/HarukaBot)
 
 ## 食用方法
 前置需求：  
