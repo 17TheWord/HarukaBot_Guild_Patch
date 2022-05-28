@@ -61,6 +61,8 @@
 
 - 替换 `database` 目录下的 `models.py`
 - 替换 `utils` 目录下的 `__init__.py`
+- 替换 `plugins` 目录下的 `add_sub.py` 和 `delete_sub.py`
+
 
 - 设置频道超级用户，以下步骤 **二选一** ！！！
     - 将 `GuildSuperUsers.py` 放到 `根目录 haruka_bot` 中
