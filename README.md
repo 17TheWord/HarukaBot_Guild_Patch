@@ -1,19 +1,23 @@
 # HarukaBot_Guild_Patch
+
 可以让 **HarukaBot** 适用于 **频道** 的方法。
 
 > 提示： 本补丁没有经过充分测试, 不建议在生产环境使用, 如果发现任何问题请自行解决  
 > 或  
-> 提交[Issues](https://github.com/17TheWord/HarukaBot_Guild_Patch/issues/new) ，因个人能力有限不保证解决issue
-
+> 提交[Issues](https://github.com/17TheWord/HarukaBot_Guild_Patch/issues/new) （因个人能力有限不保证百分百解决）
 
 ## HarukaBot——优雅的 B 站推送 QQ 机器人
-- [文档]((https://haruka-bot.sk415.icu))
+
+- [文档](https://haruka-bot.sk415.icu)
 - [Github](https://github.com/SK-415/HarukaBot)
 
 ## 食用方法
-### 前置需求：  
-  - [nonebot-plugin-guild-patch](https://github.com/mnixry/nonebot-plugin-guild-patch)：频道适配补丁
-  - 目录结构参考：
+
+### 前置需求：
+
+- [nonebot-plugin-guild-patch](https://github.com/mnixry/nonebot-plugin-guild-patch)：频道适配补丁
+- 目录结构参考：
+
 ```
 📦 HarukaBot-master
 ├── 📂 plugins
@@ -30,36 +34,57 @@
 ├── 📜 pyproject.toml
 └── 📜 README.md
 ```
+
 ### 若目录结构不同：
-- 请在 `utils` 中的 `__init__.py` 中修改 第20行：  
-- `from plugins.nonebot_plugin_guild_patch import GuildMessageEvent`  
-- 中的 `plugins.nonebot_plugin_guild_patch` 部分  
-- 替换为自己的频道适配补丁的位置  
-- 在NoneBot中，`bot.py` 所在的目录为 `根目录`  
+
+- 请在 `utils` 中的 `__init__.py` 中修改 第20行：
+- `from plugins.nonebot_plugin_guild_patch import GuildMessageEvent`
+- 中的 `plugins.nonebot_plugin_guild_patch` 部分
+- 替换为自己的频道适配补丁的位置
+- 在NoneBot中，`bot.py` 所在的目录为 `根目录`
 - 可根据此 `根目录` 更改相对位置
+
 ---
-### 环境设置（我猜的，所以我设置了）：  
-  - 频道和群的 `@方式` 可能不相同，所以建议 `关闭`  
-  - 在你的环境配置文件中设置 （如：`.env.dev` 中）  
-  - 新建一行，写入：`Haruka_TO_ME=False`
+
+### 环境设置（我猜的，所以我设置了）：
+
+- 频道和群的 `@方式` 可能不相同，所以建议 `关闭`
+- 在你的环境配置文件中设置 （如：`.env.dev` 中）
+- 新建一行，写入：`Haruka_TO_ME=False`
+
 ---
+
 ### 安装：
-- 将文件替换即可  
+
 - 假设 `haruka_bot` 目录为 `根目录`
 
 
-- 替换 `database` 目录下的 `models.py`  
+- 替换 `database` 目录下的 `models.py`
 - 替换 `utils` 目录下的 `__init__.py`
+
+- 设置频道超级用户，以下步骤 **二选一** ！！！
+    - 将 `GuildSuperUsers.py` 放到 `根目录 haruka_bot` 中
+        - 修改 `GuildSuperUserList = ["xxxxxx","xxxxxx"]`
+        - 将 `xxxxxx` 替换为你要设置的超级用户的 `频道用户ID`
+    - 在 `根目录haruka_bot` 目录新建 `GuildSuperUsers.py`
+        - 输入 `GuildSuperUserList = ["xxxxxx","xxxxxx"]`
+        - 将 `xxxxxx` 替换为你要设置的超级用户的 `频道用户ID`
+
 ---
-### 已知问题：
-- 建议关闭@机器人命令，因为不清楚频道与群的@方式是否相同 `Haruka_TO_ME=False`
-- ~~建议~~ **强烈建议**推送频道设为只读：
-  - 由于频道用户ID不同于QQ号，所以猜测超级用户不会生效
-  - 经测试，频道内不存在权限系统，任何人都可以使用命令，在使用时请慎重检查频道人员成分
+
+### 已知问题2022/5/28：
+
+- 新添加频道超级用户列表，在频道命令中添加判定用户频道ID是否在列表中，以暂时解决权限问题
+- **仍旧建议**关闭@机器人命令，因为不清楚频道与群的@方式是否相同 `Haruka_TO_ME=False`
+- 建议推送频道设为只读：
+    - 虽然暂时解决了权限问题，但频道主/频道管理员，你也不想让你的推送子频道充斥各种聊天信息吧。
+    - 由于频道用户ID不同于QQ号，猜测超级用户不会生效
+
 > 再次提示: 本补丁没有经过充分测试, 不建议在生产环境使用, 如果发现任何问题请自行解决  
 > 或  
-> 提交[Issues](https://github.com/17TheWord/HarukaBot_Guild_Patch/issues/new) ，因个人能力有限不保证解决issue
+> 提交[Issues](https://github.com/17TheWord/HarukaBot_Guild_Patch/issues/new) （因个人能力有限不保百分百证解决）
 ---
+
 ## 特别感谢
 
 - [SK-415/HarukaBot](https://github.com/SK-415/HarukaBot)： 感谢SK佬做出如此优雅的机器人。
@@ -72,7 +97,16 @@
 - [bilibili_api](https://github.com/Passkou/bilibili_api)： Python 实现的 B 站 API 库。
 
 ## 问题记录：
-### 2022/5/26
+
+### 2022/5/26-2
+
+- 建议关闭@机器人命令，因为不清楚频道与群的@方式是否相同 `Haruka_TO_ME=False`
+- ~~建议~~ **强烈建议**推送频道设为只读：
+    - 由于频道用户ID不同于QQ号，猜测超级用户不会生效
+    - 经测试，频道内不存在权限系统，任何人都可以使用命令，在使用时请慎重检查频道人员成分
+
+### 2022/5/26-1
+
 - 因为不清楚频道与群的@方式是否相同，建议关闭@机器人命令 `Haruka_TO_ME=False`
 - 因数据库中数据类型改动，需要删除数据库重新订阅！！！！！！
 - 建议推送频道设为只读，频道内权限与群内权限不一定相同（应该是不同的，在频道内输入开启权限并没有什么反应）
