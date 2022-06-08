@@ -1,5 +1,5 @@
-from tortoise.models import Model
 from tortoise.fields.data import CharField, IntField, BooleanField
+from tortoise.models import Model
 
 
 class BaseModel(Model):
@@ -62,6 +62,9 @@ class Group(BaseModel):
 class Version(BaseModel):
     version = CharField(max_length=30)
 
+
+class GuildAdminSub(BaseModel):
+    guild_admin_uid = CharField(max_length=18)
 
 # class Login(BaseModel):
 #     uid = IntField(pk=True)
