@@ -11,6 +11,9 @@
 - [文档](https://haruka-bot.sk415.icu)
 - [Github](https://github.com/SK-415/HarukaBot)
 
+
+- [我修改过的版本](https://github.com/17TheWord/HarukaBot)
+
 ## 食用方法
 
 ### 前置需求：
