@@ -18,8 +18,17 @@ delete_sub.handle()(handle_uid)
 @delete_sub.got("uid", prompt="请输入要取关的UID")
 async def _(event: MessageEvent, state: T_State):
     if isinstance(event, GuildMessageEvent):
+        subs = await db.get_guild_admin_sub_list()
+        guild_admin_uid_list = []
+        for guild_admin in subs:
+            guild_admin_uid_list.append(guild_admin.guild_admin_uid)
+
         if str(event.user_id) in list(GuildSuperUserList):
             await del_uin(event=event, state=state)
+
+        elif str(event.user_id) in guild_admin_uid_list:
+            await del_uin(event=event, state=state)
+
         else:
             await delete_sub.finish("您无权限进行此操作")
     else:
