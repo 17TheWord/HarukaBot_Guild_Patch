@@ -4,8 +4,8 @@ from nonebot import on_command
 from nonebot.adapters.onebot.v11.event import MessageEvent
 from nonebot.typing import T_State
 from plugins.nonebot_plugin_guild_patch import GuildMessageEvent
-from ...GuildSuperUsers import GuildSuperUserList
 
+from ...GuildSuperUsers import GuildSuperUserList
 from ...database import DB as db
 from ...utils import PROXIES, get_type_id, handle_uid, permission_check, to_me
 
@@ -20,8 +20,17 @@ add_sub.handle()(handle_uid)
 @add_sub.got("uid", prompt="请输入要关注的UID")
 async def _(event: MessageEvent, state: T_State):
     if isinstance(event, GuildMessageEvent):
+        subs = await db.get_guild_admin_sub_list()
+        guild_admin_uid_list = []
+        for guild_admin in subs:
+            guild_admin_uid_list.append(guild_admin.guild_admin_uid)
+
         if str(event.user_id) in list(GuildSuperUserList):
-            await add_uid(event=event,state=state)
+            await add_uid(event=event, state=state)
+
+        elif str(event.user_id) in guild_admin_uid_list:
+            await add_uid(event=event, state=state)
+
         else:
             await add_sub.finish("您无权限进行此操作")
     else:
