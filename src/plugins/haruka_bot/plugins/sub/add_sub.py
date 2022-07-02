@@ -42,7 +42,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
             await add_uid(event=event, state=state)
 
         # 判断是否为管理员身份组
-        elif if_admin_group(bot=bot, guild_user_info=guild_user_info) == 'y':
+        elif await if_admin_group(bot=bot, event=event):
             await add_uid(event=event, state=state)
 
         else:
@@ -52,15 +52,12 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
         await add_uid(event=event, state=state)
 
 
-async def if_admin_group(bot, guild_user_info):
-    # 获取 ENV 中频道管理员身份组名称
-    guild_admin_name_list = list(bot.config.haruka_guild_admin_group_name)
-
-    # 用户频道所在身份组的列表
-    for role in guild_user_info['roles']:
-        # 判断每个身份组是否在指定的组中
-        if role['role_name'] in guild_admin_name_list:
-            return 'y'
+async def if_admin_group(bot, event: GuildMessageEvent):
+    guild_member_info = await bot.call_api("get_guild_member_profile", guild_id=event.guild_id, user_id=event.user_id)
+    for per_role in guild_member_info['roles']:
+        if per_role['role_name'] in bot.config.haruka_guild_admin_groups:
+            return True
+    return False
 
 
 async def add_uid(event, state):
