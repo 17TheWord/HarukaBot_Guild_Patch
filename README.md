@@ -17,6 +17,8 @@
 
 ### 前置需求
 
+- [Haruka_Bot](https://github.com/SK-415/HarukaBot)  版本：1.4.0
+
 - [nonebot-plugin-guild-patch](https://github.com/mnixry/nonebot-plugin-guild-patch)：频道适配补丁。
 
 - Python 3.10.5 （本人环境）
