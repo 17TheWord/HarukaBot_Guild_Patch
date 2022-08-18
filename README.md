@@ -8,13 +8,17 @@
 
 ## HarukaBot——优雅的 B 站推送 QQ 机器人
 
-- [文档](https://haruka-bot.sk415.icu)
+- [HarukaBot 文档](https://haruka-bot.sk415.icu)
 
 - [HarukaBot_Github](https://github.com/SK-415/HarukaBot)
+
+- [HarukaBot_Guild 文档](https://doc.scareye.com/haruka_guild)
 
 - [HarukaBot_Guild_Github](https://github.com/17TheWord/HarukaBot_Guild_Patch)
 
 ## 使用方法
+
+- 当前版本 v1.4.1a60 测试版
 
 ### 快速部署
 
