@@ -1,5 +1,5 @@
-from tortoise.fields.data import CharField, IntField, BooleanField
 from tortoise.models import Model
+from tortoise.fields.data import CharField, IntField, BooleanField
 
 
 class BaseModel(Model):
@@ -13,7 +13,12 @@ class BaseModel(Model):
 
     @classmethod
     async def add(cls, **kwargs):
-        if await cls.get(**kwargs).exists():
+        pk_name = cls.describe()["pk_field"]["name"]
+        if pk_name == "id" and pk_name not in kwargs:
+            filters = kwargs
+        else:
+            filters = {pk_name: kwargs[pk_name]}
+        if await cls.get(**filters).exists():
             return False
         await cls.create(**kwargs)
         return True
@@ -41,8 +46,7 @@ class BaseModel(Model):
 # TODO 自定义默认权限
 class Sub(BaseModel):
     type = CharField(max_length=10)
-    type_id = CharField(max_length=25)
-    channel_id = CharField(max_length=7)
+    type_id = IntField()
     uid = IntField()
     live = BooleanField()  # default=True
     dynamic = BooleanField()  # default=True
@@ -60,12 +64,15 @@ class Group(BaseModel):
     admin = BooleanField()  # default=True
 
 
+class Guild(BaseModel):
+    id = IntField(pk=True)
+    guild_id = CharField(max_length=20)
+    channel_id = CharField(max_length=10)
+    admin = BooleanField()  # default=True
+
+
 class Version(BaseModel):
     version = CharField(max_length=30)
-
-
-class GuildAdminSub(BaseModel):
-    guild_admin_uid = CharField(max_length=18)
 
 # class Login(BaseModel):
 #     uid = IntField(pk=True)

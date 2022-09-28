@@ -7,16 +7,21 @@ import httpx
 import nonebot
 from nonebot import require
 from nonebot.adapters import Bot
-from nonebot.adapters.onebot.v11 import Message, MessageEvent, MessageSegment
+from nonebot.adapters.onebot.v11 import (
+    ActionFailed,
+    Message,
+    MessageEvent,
+    MessageSegment,
+    NetworkError,
+)
 from nonebot.adapters.onebot.v11.event import GroupMessageEvent, PrivateMessageEvent
-from nonebot.adapters.onebot.v11.exception import ActionFailed, NetworkError
 from nonebot.adapters.onebot.v11.permission import GROUP_ADMIN, GROUP_OWNER
 from nonebot.exception import FinishedException
 from nonebot.log import logger
-from nonebot.params import CommandArg
+from nonebot.matcher import Matcher
+from nonebot.params import ArgPlainText, CommandArg, RawCommand
 from nonebot.permission import SUPERUSER
 from nonebot.rule import Rule
-from nonebot.typing import T_State
 from nonebot_plugin_guild_patch import GuildMessageEvent
 
 from .. import config
@@ -32,24 +37,23 @@ def get_path(*other):
     return str(dir_path.joinpath(*other))
 
 
-async def get_guild_member_info(bot, guild_id, user_id):
-    return await bot.call_api("get_guild_member_profile", guild_id=guild_id, user_id=user_id)
-
-
 async def handle_uid(
-        bot: Bot,
-        event: MessageEvent,
-        state: T_State,
+        matcher: Matcher,
         command_arg: Message = CommandArg(),
 ):
     uid = command_arg.extract_plain_text().strip()
-    if not uid:
-        return
-    if uid.isdecimal():
-        state["uid"] = uid
-    else:
-        await bot.send(event, "UID 必须为纯数字")
-        raise FinishedException
+    if uid:
+        matcher.set_arg("uid", command_arg)
+
+
+async def uid_check(
+        matcher: Matcher,
+        uid: str = ArgPlainText("uid"),
+):
+    uid = uid.strip()
+    if not uid.isdecimal():
+        await matcher.finish("UID 必须为纯数字")
+    matcher.set_arg("uid", Message(uid))
 
 
 async def permission_check(
@@ -68,6 +72,13 @@ async def permission_check(
         raise FinishedException
 
 
+async def group_only(
+        matcher: Matcher, event: MessageEvent, command: str = RawCommand()
+):
+    if not isinstance(event, GroupMessageEvent | GuildMessageEvent):
+        await matcher.finish(f"只有群、频道里才能{command}")
+
+
 def to_me():
     if config.haruka_to_me:
         from nonebot.rule import to_me
@@ -80,99 +91,71 @@ def to_me():
     return Rule(_to_me)
 
 
-# 超管
-async def get_haruka_guild_super_user_list(bot: Bot):
-    try:
-        return bot.config.haruka_guild_super_user_list
-    except AttributeError:
-        return []
-
-
-# 管理员身份组
-async def get_haruka_guild_admin_group_list(bot: Bot):
-    try:
-        return bot.config.haruka_guild_admin_group_list
-    except AttributeError:
-        return []
-
-
-async def if_guild_admin(bot, event):
-    from ..database import DB as db
-    guild_admin_list = await db.get_guild_admin_sub_list()
-
-    # 初始化数据库中管理员ID列表
-    guild_admin_uid_list = []
-
-    # 数据库中的用户列表
-    for guild_admin in guild_admin_list:
-        guild_admin_uid_list.append(guild_admin.guild_admin_uid)
-
-    # 判断是否为超管
-    if str(event.user_id) in await get_haruka_guild_super_user_list(bot):
-        return True
-
-    # 判断是否在数据库表中
-    elif str(event.user_id) in guild_admin_uid_list:
-        return True
-
-    # 判断是否为管理员身份组
-    if await if_admin_group(bot=bot, event=event):
-        return True
-
-    return False
-
-
-async def if_admin_group(bot, event: GuildMessageEvent):
-    guild_member_info = await get_guild_member_info(bot, event.guild_id, event.user_id)
-    for per_role in guild_member_info['roles']:
-        if per_role['role_name'] in await get_haruka_guild_admin_group_list(bot):
-            return True
-    return False
-
-
-async def safe_send(bot_id, send_type, type_id, channel_id, message, at=False):
+async def safe_send(bot_id, send_type, type_id, message, at=False):
     """发送出现错误时, 尝试重新发送, 并捕获异常且不会中断运行"""
 
-    try:
-        bot = nonebot.get_bots()[str(bot_id)]
-    except KeyError:
-        logger.error(f"推送失败，Bot（{bot_id}）未连接")
-        return
-
-    if at and (await bot.get_group_at_all_remain(group_id=type_id))["can_at_all"]:
-        message = MessageSegment.at("all") + message
-
-    try:
-        if send_type != 'guild':
-            type_id = int(type_id)
-            return await bot.call_api(
+    async def _safe_send(bot, send_type, type_id, message):
+        if send_type == "guild":
+            from ..database import DBGuild as db_guild
+            guild = await db_guild.get_guild_id(id=type_id)
+            result = await bot.call_api(
+                "send_guild_channel_msg",
+                guild_id=guild["guild_id"],
+                channel_id=guild["channel_id"],
+                message=message,
+            )
+        else:
+            result = await bot.call_api(
                 "send_" + send_type + "_msg",
                 **{
                     "message": message,
                     "user_id" if send_type == "private" else "group_id": type_id,
                 },
             )
-        else:
-            return await bot.call_api(
-                "send_guild_channel_msg",
-                guild_id=type_id,
-                channel_id=channel_id,
-                message=message
-            )
+        return result
+
+    bots = nonebot.get_bots()
+    bot = bots.get(str(bot_id))
+    if bot is None:
+        logger.error(f"推送失败，Bot（{bot_id}）未连接，尝试使用其他 Bot 推送")
+        for bot_id, bot in bots.items():
+            if (
+                    at
+                    and (await bot.get_group_at_all_remain(group_id=type_id))["can_at_all"]
+            ):
+                message = MessageSegment.at("all") + message
+            try:
+                result = await _safe_send(bot, send_type, type_id, message)
+                logger.info(f"尝试使用 Bot（{bot_id}）推送成功")
+                return result
+            except Exception:
+                continue
+        logger.error(f"尝试失败，所有 Bot 均无法推送")
+        return
+
+    if at and (await bot.get_group_at_all_remain(group_id=type_id))["can_at_all"]:
+        message = MessageSegment.at("all") + message
+
+    try:
+        return await _safe_send(bot, send_type, type_id, message)
     except ActionFailed as e:
-        url = "https://haruka-bot.sk415.icu/usage/faq.html#机器人不发消息也没反应"
-        logger.error(f"推送失败，账号可能被风控（{url}），错误信息：{e.info}")
+        if e.info["msg"] == "GROUP_NOT_FOUND":
+            from ..database import DB as db
+
+            await db.delete_sub_list(type="group", type_id=type_id)
+            await db.delete_group(id=type_id)
+            logger.error(f"推送失败，群（{type_id}）不存在，已自动清理群订阅列表")
+        elif e.info["msg"] == "SEND_MSG_API_ERROR":
+            url = "https://haruka-bot.sk415.icu/usage/faq.html#机器人不发消息也没反应"
+            logger.error(f"推送失败，账号可能被风控（{url}），错误信息：{e.info}")
+        else:
+            logger.error(f"推送失败，未知错误，错误信息：{e.info}")
     except NetworkError as e:
         logger.error(f"推送失败，请检查网络连接，错误信息：{e.msg}")
 
 
 def get_type_id(event: MessageEvent):
-    if isinstance(event, GuildMessageEvent):
-        return str(event.guild_id) + str(event.channel_id)
-    elif isinstance(event, GroupMessageEvent):
-        return str(event.group_id)
-    elif isinstance(event, PrivateMessageEvent):
-        return str(event.user_id)
+    return event.group_id if isinstance(event, GroupMessageEvent) else event.user_id
 
 
 def check_proxy():
@@ -207,6 +190,8 @@ def on_startup():
 
 
 PROXIES = {"all://": config.haruka_proxy}
-scheduler = require("nonebot_plugin_apscheduler").scheduler
+
+require("nonebot_plugin_apscheduler")
+from nonebot_plugin_apscheduler import scheduler
 
 from .browser import get_dynamic_screenshot  # noqa

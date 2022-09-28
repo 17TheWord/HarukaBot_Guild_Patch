@@ -6,13 +6,14 @@ from nonebot import get_driver
 from nonebot.log import logger
 from packaging.version import Version as version_parser
 from tortoise import Tortoise
+from tortoise.connection import connections
 
-from .models import Group, Sub, User, Version, GuildAdminSub
 from ..utils import get_path
 from ..version import VERSION as HBVERSION
+from .models import Group, Sub, User, Version
 
 uid_list = {"live": {"list": [], "index": 0}, "dynamic": {"list": [], "index": 0}}
-guild_admin_list = []
+dynamic_offset = {}
 
 
 class DB:
@@ -37,11 +38,6 @@ class DB:
         return await User.get(**kwargs).first()
 
     @classmethod
-    async def get_guild_admin(cls, **kwargs):
-        """获取 频道管理员信息"""
-        return await GuildAdminSub.get(**kwargs).first()
-
-    @classmethod
     async def get_name(cls, uid) -> Optional[str]:
         """获取 UP 主昵称"""
         user = await cls.get_user(uid=uid)
@@ -53,19 +49,6 @@ class DB:
     async def add_user(cls, **kwargs):
         """添加 UP 主信息"""
         return await User.add(**kwargs)
-
-    @classmethod
-    async def add_guild_admin(cls, **kwargs):
-        """添加频道管理信息"""
-        return await GuildAdminSub.add(**kwargs)
-
-    @classmethod
-    async def del_guild_admin(cls, **kwargs) -> bool:
-        """删除频道管理信息"""
-        if await GuildAdminSub.delete(**kwargs):
-            return True
-        else:
-            return False
 
     @classmethod
     async def delete_user(cls, uid) -> bool:
@@ -115,7 +98,7 @@ class DB:
     @classmethod
     async def set_permission(cls, id, switch):
         """设置指定位置权限"""
-        if not await cls.add_group(id=id):
+        if not await cls.add_group(id=id, admin=switch):
             await Group.update({"id": id}, admin=switch)
 
     @classmethod
@@ -128,10 +111,6 @@ class DB:
         return await Sub.get(**kwargs)
 
     @classmethod
-    async def get_guild_admin_subs(cls, **kwargs):
-        return await GuildAdminSub.get(**kwargs)
-
-    @classmethod
     async def get_push_list(cls, uid, func) -> List[Sub]:
         """根据类型和 UID 获取需要推送的 QQ 列表"""
         return await cls.get_subs(uid=uid, **{func: True})
@@ -139,12 +118,7 @@ class DB:
     @classmethod
     async def get_sub_list(cls, type, type_id) -> List[Sub]:
         """获取指定位置的推送列表"""
-        return await cls.get_subs(type=type, type_id=type_id[:17], channel_id=type_id[17:])
-
-    @classmethod
-    async def get_guild_admin_sub_list(cls) -> List[Sub]:
-        """获取Bot的频道管理列表"""
-        return await cls.get_guild_admin_subs()
+        return await cls.get_subs(type=type, type_id=type_id)
 
     @classmethod
     async def add_sub(cls, *, name, **kwargs) -> bool:
@@ -158,31 +132,9 @@ class DB:
         return True
 
     @classmethod
-    async def add_guild_admin_sub(cls, guild_admin_uid, **kwargs) -> bool:
-        """添加频道管理"""
-        # if not await GuildAdminSub.add(**kwargs):
-        #     return False
-        if await cls.add_guild_admin(guild_admin_uid=guild_admin_uid):
-            # await cls.update_guild_admin_list()
-            return True
-        else:
-            return False
-
-    @classmethod
-    async def del_guild_admin_sub(cls, guild_admin_uid, **kwargs) -> bool:
-        """删除频道管理"""
-        # if not await GuildAdminSub.add(**kwargs):
-        #     return False
-        if await cls.del_guild_admin(guild_admin_uid=guild_admin_uid):
-            # await cls.update_guild_admin_list()
-            return True
-        else:
-            return False
-
-    @classmethod
     async def delete_sub(cls, uid, type, type_id) -> bool:
         """删除指定订阅"""
-        if await Sub.delete(uid=uid, type=type, type_id=type_id[:17], channel_id=type_id[17:]):
+        if await Sub.delete(uid=uid, type=type, type_id=type_id):
             await cls.delete_user(uid=uid)
             await cls.update_uid_list()
             return True
@@ -282,13 +234,13 @@ class DB:
             set([sub.uid async for sub in subs if sub.dynamic])
         )
 
-    @classmethod
-    async def update_guild_admin_list(cls):
-        """更新频道管理员列表"""
-        subs = GuildAdminSub.all()
-        guild_admin_list = list(
-            set([sub.guild_admin_uid async for sub in subs.guild_admin_uid])
-        )
+        # 清除没有订阅的 offset
+        dynamic_offset_keys = set(dynamic_offset)
+        dynamic_uids = set(uid_list["dynamic"]["list"])
+        for uid in dynamic_offset_keys - dynamic_uids:
+            del dynamic_offset[uid]
+        for uid in dynamic_uids - dynamic_offset_keys:
+            dynamic_offset[uid] = -1
 
     async def backup(self):
         """备份数据库"""
@@ -306,4 +258,4 @@ class DB:
 
 
 get_driver().on_startup(DB.init)
-get_driver().on_shutdown(Tortoise.close_connections)
+get_driver().on_shutdown(connections.close_all)

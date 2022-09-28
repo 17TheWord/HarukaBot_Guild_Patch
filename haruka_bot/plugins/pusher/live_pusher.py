@@ -56,7 +56,6 @@ async def live_sched():
                 bot_id=sets.bot_id,
                 send_type=sets.type,
                 type_id=sets.type_id,
-                channel_id=sets.channel_id,
                 message=live_msg,
                 at=bool(sets.at) if new_status else False,  # 下播不@全体
             )

@@ -1,37 +1,34 @@
 from bilireq.exceptions import ResponseCodeError
 from bilireq.user import get_user_info
 from nonebot import on_command
-from nonebot.adapters.onebot.v11 import Bot
 from nonebot.adapters.onebot.v11.event import MessageEvent
-from nonebot.typing import T_State
-from nonebot_plugin_guild_patch import GuildMessageEvent
+from nonebot.params import ArgPlainText
 
-from ...database import DB as db
-from ...utils import PROXIES, get_type_id, handle_uid, permission_check, to_me, if_guild_admin
+from ...database import DB as db, DBGuild as db_guild
+from ...utils import (
+    PROXIES,
+    get_type_id,
+    handle_uid,
+    permission_check,
+    to_me,
+    uid_check,
+)
+
+from ...utils.guild_utils import permission_check_guild_admin
 
 add_sub = on_command("关注", aliases={"添加主播"}, rule=to_me(), priority=5)
 add_sub.__doc__ = """关注 UID"""
 
-add_sub.handle()(permission_check)
+add_sub.handle()(permission_check_guild_admin or permission_check)
 
 add_sub.handle()(handle_uid)
 
-
-@add_sub.got("uid", prompt="请输入要关注的UID")
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    if isinstance(event, GuildMessageEvent):
-        if await if_guild_admin(bot, event):
-            await add_uid(event=event, state=state)
-        else:
-            await add_sub.finish("您无权限进行此操作")
-
-    else:
-        await add_uid(event=event, state=state)
+add_sub.got("uid", prompt="请输入要关注的UID")(uid_check)
 
 
-async def add_uid(event, state):
+@add_sub.handle()
+async def _(event: MessageEvent, uid: str = ArgPlainText("uid")):
     """根据 UID 订阅 UP 主"""
-    uid = str(state["uid"])
     user = await db.get_user(uid=uid)
     name = user and user.name
     if not name:
@@ -47,18 +44,37 @@ async def add_uid(event, state):
                     f"未知错误，请联系开发者反馈，错误内容：\n\
                                     {str(e)}"
                 )
-    result = await db.add_sub(
-        uid=uid,
-        type=event.message_type,
-        type_id=get_type_id(event)[:17],
-        channel_id=get_type_id(event)[17:],
-        bot_id=event.self_id,
-        name=name,
-        # TODO 自定义默认开关
-        live=True,
-        dynamic=True,
-        at=False,
-    )
+
+    if event.message_type == "guild":
+        guild = await db_guild.get_guild_db_id(
+            guild_id=event.guild_id,
+            channel_id=event.channel_id,
+        )
+        result = await db_guild.add_guild_sub(
+            uid=uid,
+            type=event.message_type,
+            type_id=guild.id,
+            guild_id=event.guild_id,
+            channel_id=event.channel_id,
+            bot_id=event.self_id,
+            name=name,
+            # TODO 自定义默认开关
+            live=True,
+            dynamic=True,
+            at=False,
+        )
+    else:
+        result = await db.add_sub(
+            uid=uid,
+            type=event.message_type,
+            type_id=get_type_id(event),
+            bot_id=event.self_id,
+            name=name,
+            # TODO 自定义默认开关
+            live=True,
+            dynamic=True,
+            at=False,
+        )
     if result:
         await add_sub.finish(f"已关注 {name}（{uid}）")
     await add_sub.finish(f"{name}（{uid}）已经关注了")
