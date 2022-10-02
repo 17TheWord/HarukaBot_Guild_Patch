@@ -1,10 +1,10 @@
 # HarukaBot_Guild_Patch
 
-可以让 **HarukaBot** 适用于 **频道** 的方法。
+可以让 **HarukaBot** 适用于 **频道** 的补丁。
 
 > 提示： 本补丁没有经过充分测试, 不建议在生产环境使用, 如果发现任何问题请自行解决，  
 > 或  
-> 提交[Issues](https://github.com/17TheWord/HarukaBot_Guild_Patch/issues/new) （因个人能力有限不保证百分百解决）。
+> 提交[Issues](https://github.com/17TheWord/HarukaBot_Guild_Patch/issues) （因个人能力有限不保证百分百解决）。
 
 ## HarukaBot——优雅的 B 站推送 QQ 机器人
 
@@ -18,7 +18,7 @@
 
 ## 使用方法
 
-- 当前版本 `v1.4.1post5`
+- 当前版本 `v1.4.2`
 
 ### 快速部署
 
@@ -49,7 +49,7 @@
 
 觉得好用可以给这个项目点个 Star。
 
-有意见或者建议也欢迎提交 [Issues](https://github.com/SK-415/HarukaBot/issues) 和 [Pull requests](https://github.com/SK-415/HarukaBot/pulls)。
+有意见或者建议也欢迎提交 [Issues](https://github.com/17TheWord/HarukaBot_Guild_Patch/issues) 和 [Pull requests](https://github.com/17TheWord/HarukaBot_Guild_Patch/pulls)。
 
 ---
 
