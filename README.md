@@ -45,5 +45,13 @@
 
 ---
 
+## 支持与贡献
+
+觉得好用可以给这个项目点个 Star。
+
+有意见或者建议也欢迎提交 [Issues](https://github.com/SK-415/HarukaBot/issues) 和 [Pull requests](https://github.com/SK-415/HarukaBot/pulls)。
+
+---
+
 ## 许可证
 本项目使用 [GNU AGPLv3](https://choosealicense.com/licenses/agpl-3.0/) 作为开源许可证。
