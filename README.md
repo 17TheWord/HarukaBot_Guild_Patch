@@ -12,7 +12,7 @@
 
 - [HarukaBot_Github](https://github.com/SK-415/HarukaBot)
 
-- [HarukaBot_Guild 文档](https://doc.scareye.com/haruka_guild)
+- [HarukaBot_Guild 文档](https://17theword.github.io/haruka_guild)
 
 - [HarukaBot_Guild_Github](https://github.com/17TheWord/HarukaBot_Guild_Patch)
 
@@ -28,7 +28,7 @@
 
 ### 详细教程
 
-- [仍在装修的文档](https://doc.scareye.com/haruka_guild/)
+- [仍在装修的文档](https://17theword.github.io/haruka_guild/)
 
 ---
 
